@@ -64,6 +64,7 @@ def main():
                 "UPDATE pr_comments SET sentimento = %s, confianca = %s WHERE comment_id = %s",  # Atualiza as colunas 'sentimento' e 'confianca' com os valores dos resultados
                 (res[1], res[2], res[0])  # Passa os valores do 'label', 'score' e 'comment_id' para a consulta
             )
+        print(f"Sentiment Classification Data Saved.")
 
         conn.commit()  # Aplica as alterações no banco de dados
         cursor.close()  # Fecha o cursor
