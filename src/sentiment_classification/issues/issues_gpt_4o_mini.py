@@ -21,11 +21,14 @@ def main():
         conn = psycopg2.connect(**DATABASE_CONFIG)
         cursor = conn.cursor()
 
-        def analyze_sentiment_gpt(context, text, model):
+        def analyze_sentiment_comment(context, comment, model):
             prompt = f"""
+            In the context of the following issue:
+            {context}
+
             Respond with only one word: 'positive', 'neutral', or 'negative'. 
-            What is the sentiment of the following text?
-            {text}
+            What is the sentiment of the next comment?
+            {comment}
             """
             
             client = openai.OpenAI(api_key=OPENAI_API_KEY)
@@ -86,7 +89,9 @@ def main():
                 comment_id, created_at, body = comment
                 print(f"    Current context: {context}")
                 print(f"    Comment {comment_id}: {body[:30]}...")
-                context = context + " " + f"Comment {i}: '{body}'."
+
+                # Increment the context
+                context = context + " " + f"Comment {i}: <beginning of comment {i}> '{body}' <end of comment {i}>."
                 i += 1
             print("")
             print("")
