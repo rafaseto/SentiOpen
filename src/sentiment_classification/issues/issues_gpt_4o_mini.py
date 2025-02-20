@@ -21,7 +21,7 @@ def main():
         conn = psycopg2.connect(**DATABASE_CONFIG)
         cursor = conn.cursor()
 
-        def analyze_sentiment_gpt(text, model):
+        def analyze_sentiment_gpt(context, text, model):
             prompt = f"""
             Respond with only one word: 'positive', 'neutral', or 'negative'. 
             What is the sentiment of the following text?
@@ -80,10 +80,14 @@ def main():
             comments = cursor.fetchall()
 
             print(f"Comments for the Issue {issue_id} - {title}:")
-            
+            context = f"Title of the issue: '{title}'."
+            i = 1
             for comment in comments:
                 comment_id, created_at, body = comment
+                print(f"    Current context: {context}")
                 print(f"    Comment {comment_id}: {body[:30]}...")
+                context = context + " " + f"Comment {i}: '{body}'."
+                i += 1
             print("")
             print("")
             """
