@@ -2,17 +2,16 @@ import psycopg2
 import openai  
 import pandas as pd
 import time
-import os
 
 def main():
     dbname = input("Database Name: ").strip()
 
     DATABASE_CONFIG = {
         "dbname": dbname,
-        "user": os.getenv("DB_USER", "postgres"),
-        "password": os.getenv("DB_PASSWORD", "YzLq4UAMQ7LOadXh"),
-        "host": os.getenv("DB_HOST", "humanely-winged-bluebird.data-1.use1.tembo.io"),
-        "port": os.getenv("DB_PORT", 5432),
+        "user": "postgres",
+        "password": "",
+        "host": "",
+        "port": 5432,
     }
 
     MODEL = "gpt-4o-mini"
