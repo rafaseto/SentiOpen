@@ -94,7 +94,7 @@ def main():
                 # Classifyig the comment`s sentiment
                 resultado = analyze_sentiment_comment(context, body, MODEL)
                 print(f"     Response Generated: {resultado}")
-                resultados.append((issue_id, resultado))  
+                resultados.append((comment_id, resultado))  
                 print("     Response saved")
 
                 # Increment the context
@@ -114,7 +114,7 @@ def main():
  
         for res in resultados:  
             cursor.execute(  
-                "UPDATE issue_comments SET sentiment_gpt_4o_mini = %s WHERE issue_id = %s",  
+                "UPDATE issue_comments SET sentiment_gpt_4o_mini = %s WHERE comment_id = %s",  
                 (res[1], res[0])  
             )
         print(f"Sentiment Classification Data Saved - {num_comments_classified} Comments Classified")
