@@ -59,7 +59,7 @@ def main():
         issues = cursor.fetchmany(10)
 
         resultados = []  
-        num_issues_classified = 0
+        num_comments_classified = 0
 
         start = time.time()
         for issue in issues: 
@@ -85,30 +85,28 @@ def main():
             print(f"Comments for the Issue {issue_id} - {title}:")
             context = f"Title of the issue: '{title}'."
             i = 1
+            
             for comment in comments:
                 comment_id, created_at, body = comment
-                print(f"    Current context: {context}")
-                print(f"    Comment {comment_id}: {body[:30]}...")
+                print(f"Classifying sentiment for comment {comment_id}: {body[:30]}...")
+                print("     Generating response...")
+
+                # Classifyig the comment`s sentiment
+                resultado = analyze_sentiment_comment(context, body, MODEL)
+                print(f"     Response Generated: {resultado}")
+                resultados.append((issue_id, resultado))  
+                print("     Response saved")
 
                 # Increment the context
                 context = context + " " + f"Comment {i}: <beginning of comment {i}> '{body}' <end of comment {i}>."
                 i += 1
-            print("")
-            print("")
-            """
-            print(f"Classifying sentiment for issue comment {comment_id}")
-            num_issues_classified += 1
 
-            # Classificar o texto
-            print("     Generating response...")
-            resultado = analyze_sentiment_gpt(body, MODEL)
-            print(f"     Response Generated: {resultado}")
-            resultados.append((issue_id, resultado))  
-            print("     Response saved")
-            """
+                num_comments_classified += 1
+            print("")
+            print("")
         end = time.time()
 
-        """
+
         classification_time = end - start
         print(f"Classification Time: {classification_time:.4f} seconds")
 
@@ -119,8 +117,8 @@ def main():
                 "UPDATE issue_comments SET sentiment_gpt_4o_mini = %s WHERE issue_id = %s",  
                 (res[1], res[0])  
             )
-        print(f"Sentiment Classification Data Saved - {num_issues_classified} Issue Comments Classified")
-        """
+        print(f"Sentiment Classification Data Saved - {num_comments_classified} Comments Classified")
+
         conn.commit()  
         cursor.close()  
         conn.close() 
