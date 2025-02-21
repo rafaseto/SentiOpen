@@ -23,7 +23,7 @@ def main():
 
         def analyze_sentiment_comment(context, comment, model):
             prompt = f"""
-            In the context of the following issue:
+            In the context of the following GitHub issue:
             {context}
 
             Respond with only one word: 'positive', 'neutral', or 'negative'. 
