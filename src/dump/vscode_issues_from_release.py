@@ -175,7 +175,7 @@ def save_comments_to_postgres(conn, issue_id, comments):
     except Exception as e:
         print(f"Erro ao salvar comentários: {e}")
 
-def save_issues_to_postgres(conn, issues, repo_owner, repo_name):
+def save_issues_to_postgres(conn, issues, release_id, repo_owner, repo_name):
     try:
         cursor = conn.cursor()
 
@@ -183,7 +183,9 @@ def save_issues_to_postgres(conn, issues, repo_owner, repo_name):
             """
             CREATE TABLE IF NOT EXISTS issues_from_release (
                 issue_id BIGINT PRIMARY KEY,
+                release_id BIGINT,
                 title TEXT,
+                body TEXT,
                 state TEXT,
                 created_at TIMESTAMP,
                 updated_at TIMESTAMP,
@@ -204,13 +206,15 @@ def save_issues_to_postgres(conn, issues, repo_owner, repo_name):
             # Salvar a issue
             cursor.execute(
                 """
-                INSERT INTO issues_from_release (issue_id, title, state, created_at, updated_at, closed_at, author, repo_name, url)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO issues_from_release (issue_id, release_id, title, body, state, created_at, updated_at, closed_at, author, repo_name, url)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (issue_id) DO NOTHING;
                 """,
                 (
                     issue["id"],
+                    release_id,
                     issue["title"],
+                    issue["body"],
                     issue["state"],
                     issue["created_at"],
                     issue["updated_at"],
@@ -267,7 +271,7 @@ if __name__ == "__main__":
             issues = fetch_issues_from_release(query, GITHUB_TOKEN)
 
             print(f"{len(issues)} issues fechadas encontradas.")
-            save_issues_to_postgres(conn, issues, repo_owner, repo_name)
+            save_issues_to_postgres(conn, issues, release_id, repo_owner, repo_name)
 
     except Exception as e:
         print(f"Erro ao conectar ao banco de dados ou executar o processo: {e}")
