@@ -3,3 +3,5 @@ google-genai
 pandas
 ipykernel
 psycopg2
+torch
+ollama
