@@ -6,3 +6,5 @@ psycopg2
 torch
 ollama
 matplotlib
+spacy
+emoji
