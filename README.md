@@ -15,8 +15,8 @@ To work on this project, ensure you have the following installed:
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/rafaseto/os-projects-sentiment-analysis.git
-    cd os-projects-sentiment-analysis
+    git clone https://github.com/rafaseto/SentiOpen.git
+    cd SentiOpen
     ```
 
 2. Create a virtual environment in the project directory:
