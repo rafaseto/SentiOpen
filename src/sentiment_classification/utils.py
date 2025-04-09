@@ -30,10 +30,16 @@ def classify_comment_sentiment_gpt(comment_body, messages, client, model):
     response = client.chat.completions.create(
         model = model,
         messages = messages,
-        temperature = 0.2
+        temperature = 0
     )
 
     # Gets the content (sentiment) of the response
     comment_sentiment = response.choices[0].message.content.lower()
+
+    # Appending the sentiment to the context of the conversation
+    messages.append({
+        "role": "assistant",
+        "content": comment_sentiment
+    })
 
     return comment_sentiment
