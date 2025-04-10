@@ -18,7 +18,7 @@ def get_comments_by_issue_id(issue_id, cursor):
     return comments
 
 
-def classify_comment_sentiment_gpt(comment_body, messages, client, model):
+def classify_comment_sentiment_openai(comment_body, messages, client, model):
     prompt = f"Classify the sentiment of this comment: {comment_body}"
 
     # Appending this prompt to messages
@@ -72,7 +72,7 @@ def analyze_issue_sentiment_gpt(issue_title, issue_body, comments, client, model
         comment_id, _, comment_body = comment
 
         print(f"Classifying comment {comment_id}...", end=' ')
-        comment_sentiment = classify_comment_sentiment_gpt(
+        comment_sentiment = classify_comment_sentiment_openai(
             comment_body=comment_body, 
             messages=messages, 
             client=client, 
