@@ -1,3 +1,8 @@
+import logging
+from log_config import configure_logging
+
+configure_logging()
+
 def get_comments_by_issue_id(issue_id, cursor):
     cursor.execute(
         """
@@ -36,7 +41,7 @@ def classify_comment_sentiment_openai(comment_body, messages, client, model):
 
     # Gets the content (sentiment) of the response
     comment_sentiment = response.choices[0].message.content.lower()
-    print(comment_sentiment)
+    logging.info(f"Sentiment of the comment is: {comment_sentiment}")
 
     # Appending the sentiment to the context of the conversation
     messages.append({
@@ -71,7 +76,7 @@ def analyze_issue_sentiment_gpt(issue_title, issue_body, comments, client, model
     for comment in comments:
         comment_id, _, comment_body = comment
 
-        print(f"Classifying comment {comment_id}...", end=' ')
+        logging.info(f"Classifying comment {comment_id}...")
         comment_sentiment = classify_comment_sentiment_openai(
             comment_body=comment_body, 
             messages=messages, 
@@ -94,7 +99,6 @@ def save_sentiments_gpt(sentiments,cursor):
         """
     )
 
-    i = 0
     for sentiment in sentiments:
         try:
             comment_id, comment_sentiment = sentiment
@@ -110,11 +114,9 @@ def save_sentiments_gpt(sentiments,cursor):
                 """,
                 (comment_sentiment, comment_id)
             )
-            i += 1
         except Exception as e:
-            print(f"Error occurred with comment {sentiment}: {e}")
-
-    print(f"{i} out of {len(sentiments)} comments successfully saved.")
+            logging.error(f"Error occurred with comment {sentiment}: {e}")
+            continue
 
 
 def save_sentiments_ds(sentiments,cursor):
@@ -127,7 +129,6 @@ def save_sentiments_ds(sentiments,cursor):
         """
     )
 
-    i = 0
     for sentiment in sentiments:
         try:
             comment_id, comment_sentiment = sentiment
@@ -143,8 +144,6 @@ def save_sentiments_ds(sentiments,cursor):
                 """,
                 (comment_sentiment, comment_id)
             )
-            i += 1
         except Exception as e:
-            print(f"Error occurred with comment {sentiment}: {e}")
-
-    print(f"{i} out of {len(sentiments)} comments successfully saved.")
+            logging.error(f"Error occurred with comment {sentiment}: {e}")
+            continue
