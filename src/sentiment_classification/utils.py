@@ -52,7 +52,7 @@ def classify_comment_sentiment_openai(comment_body, messages, client, model):
     return comment_sentiment
 
 
-def analyze_issue_sentiment_gpt(issue_title, issue_body, comments, client, model):
+def analyze_issue_sentiment_openai(issue_title, issue_body, comments, client, model):
     messages = [
         {
             "role": "system",
