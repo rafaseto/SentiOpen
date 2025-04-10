@@ -115,3 +115,36 @@ def save_sentiments_gpt(sentiments,cursor):
             print(f"Error occurred with comment {sentiment}: {e}")
 
     print(f"{i} out of {len(sentiments)} comments successfully saved.")
+
+
+def save_sentiments_ds(sentiments,cursor):
+    cursor.execute(
+        """
+        ALTER TABLE
+            issue_comments_from_release
+        ADD COLUMN IF NOT EXISTS
+            sentiment_deepseek_v3 TEXT;
+        """
+    )
+
+    i = 0
+    for sentiment in sentiments:
+        try:
+            comment_id, comment_sentiment = sentiment
+
+            cursor.execute(
+                """
+                UPDATE 
+                    issue_comments_from_release
+                SET 
+                    sentiment_deepseek_v3 = %s
+                WHERE
+                    comment_id = %s;
+                """,
+                (comment_sentiment, comment_id)
+            )
+            i += 1
+        except Exception as e:
+            print(f"Error occurred with comment {sentiment}: {e}")
+
+    print(f"{i} out of {len(sentiments)} comments successfully saved.")
