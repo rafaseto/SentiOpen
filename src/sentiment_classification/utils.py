@@ -36,6 +36,7 @@ def classify_comment_sentiment_gpt(comment_body, messages, client, model):
 
     # Gets the content (sentiment) of the response
     comment_sentiment = response.choices[0].message.content.lower()
+    print(comment_sentiment)
 
     # Appending the sentiment to the context of the conversation
     messages.append({
@@ -70,6 +71,7 @@ def analyze_issue_sentiment_gpt(issue_title, issue_body, comments, client, model
     for comment in comments:
         comment_id, _, comment_body = comment
 
+        print(f"Classifying comment {comment_id}...", end=' ')
         comment_sentiment = classify_comment_sentiment_gpt(
             comment_body=comment_body, 
             messages=messages, 
@@ -80,3 +82,36 @@ def analyze_issue_sentiment_gpt(issue_title, issue_body, comments, client, model
         results.append((comment_id, comment_sentiment))
 
     return results
+
+
+def save_sentiments_gpt(sentiments,cursor):
+    cursor.execute(
+        """
+        ALTER TABLE
+            issue_comments_from_release
+        ADD COLUMN IF NOT EXISTS
+            sentiment_gpt_4o_mini TEXT;
+        """
+    )
+
+    i = 0
+    for sentiment in sentiments:
+        try:
+            comment_id, comment_sentiment = sentiment
+
+            cursor.execute(
+                """
+                UPDATE 
+                    issue_comments_from_release
+                SET 
+                    sentiment_gpt_4o_mini = %s
+                WHERE
+                    comment_id = %s;
+                """,
+                (comment_sentiment, comment_id)
+            )
+            i += 1
+        except Exception as e:
+            print(f"Error occurred with comment {sentiment}: {e}")
+
+    print(f"{i} out of {len(sentiments)} comments successfully saved.")
