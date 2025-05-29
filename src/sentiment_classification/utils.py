@@ -36,7 +36,7 @@ def classify_comment_sentiment_openai(comment_body, messages, client, model):
     response = client.chat.completions.create(
         model = model,
         messages = messages,
-        temperature = 0
+        temperature = 0.2
     )
 
     # Gets the content (sentiment) of the response
@@ -144,6 +144,44 @@ def save_sentiments_ds(sentiments,cursor):
                 """,
                 (comment_sentiment, comment_id)
             )
+        except Exception as e:
+            logging.error(f"Error occurred with comment {sentiment}: {e}")
+            continue
+        
+
+def save_sentiments_gemini(sentiments,cursor):
+    try:
+        cursor.execute(
+            """
+            ALTER TABLE
+                issue_comments_from_release
+            ADD COLUMN IF NOT EXISTS
+                sentiment_gemini_2_0_flash TEXT;
+            """
+        )
+    except Exception as e:
+        logging.error(f"Error occurred when altering the table: {e}")
+        
+    i = 1
+    for sentiment in sentiments:
+        logging.info(f"Trying to save sentiment ({i}/{len(sentiments)})...")
+        try:
+            comment_id, comment_sentiment = sentiment
+
+            cursor.execute(
+                """
+                UPDATE 
+                    issue_comments_from_release
+                SET 
+                    sentiment_gemini_2_0_flash = %s
+                WHERE
+                    comment_id = %s;
+                """,
+                (comment_sentiment, comment_id)
+            )
+
+            logging.info("saved!")
+            i += 1
         except Exception as e:
             logging.error(f"Error occurred with comment {sentiment}: {e}")
             continue

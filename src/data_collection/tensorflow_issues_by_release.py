@@ -1,10 +1,10 @@
 import requests
 import psycopg2
-import re
-import urllib
+from dotenv import load_dotenv
+import os
 
-
-GITHUB_TOKEN = ''
+load_dotenv()
+GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 def fetch_issues_from_release(release_label, token=None, per_page=100):
     """
@@ -230,8 +230,8 @@ if __name__ == "__main__":
     DATABASE_CONFIG = {
         "dbname": dbname,
         "user": "postgres",
-        "password": "",
-        "host": "",
+        "password": "YzLq4UAMQ7LOadXh",
+        "host": "humanely-winged-bluebird.data-1.use1.tembo.io",
         "port": 5432,
     }
 
@@ -241,12 +241,12 @@ if __name__ == "__main__":
         cursor = conn.cursor()
 
 
-        release_number = 2.17
+        release_number = '"TF 2.18"'
 
         issues = fetch_issues_from_release(release_number, GITHUB_TOKEN)
 
         print(f"{len(issues)} issues fechadas encontradas.")
-        # save_issues_to_postgres(conn, issues, release_number, repo_owner, repo_name)
+        save_issues_to_postgres(conn, issues, release_number, repo_owner, repo_name)
 
     except Exception as e:
         print(f"Erro ao conectar ao banco de dados ou executar o processo: {e}")

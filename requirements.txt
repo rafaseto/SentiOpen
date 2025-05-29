@@ -1,10 +1,13 @@
 openai
 google-genai
+google-generativeai
 pandas
 ipykernel
 psycopg2
+psycopg
 torch
 ollama
 matplotlib
 spacy
 emoji
+python-dotenv
