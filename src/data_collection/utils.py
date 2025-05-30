@@ -55,9 +55,40 @@ def fetch_issues_from_query(query, token=None, per_page=100):
     return issues
 
 
-def fetch_comments_for_issues(issues, repo_owner, repo_name, token=None):
+def fetch_comments_for_issue(issue_number, repo_owner, repo_name, headers):
+    url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{issue_number}/comments"
+    params = {"per_page": 100, "page": 1}
+    
+    comments = []
+    while True:
+        response = requests.get(url, headers=headers, params=params)
+
+        if response.status_code != 200:
+            logging.error(
+                "Error when fetching comments for issue"
+                f" #{issue_number}: {response.status_code}"
+            )
+            break
+
+        data = response.json()
+
+        if not data:
+            break
+
+        comments.extend(data)
+
+        params["page"] += 1
+    
+    logging.info(
+        f"{len(comments)} comments found for issue {issue_number}."
+    )
+
+    return comments
+
+
+def fetch_and_save_comments_for_issues(issues, repo_owner, repo_name, conn, token=None):
     """
-    Fetches all comments for the given issue by iterating through paginated API results.
+    Fetches and saves all comments for the given issue by iterating through paginated API results.
 
     This function uses the GitHub REST API to retrieve comments for the given issues
     in the specified repository. It will automatically paginate through all available pages
@@ -79,40 +110,36 @@ def fetch_comments_for_issues(issues, repo_owner, repo_name, token=None):
     """
     headers = {"Authorization": f"Bearer {token}"}
 
-    comments = []
     for i, issue in enumerate(issues):
         issue_number = issue['number']
-
-        url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/issues/{issue_number}/comments"
-        params = {"per_page": 100, "page": 1}
+        issue_id = issue['id']
 
         logging.info(
-            "Fetching comments for issue"
-            f" #{issue_number} --- {i + 1}/{len(issues)}"
+            f"Fetching comments for issue #{issue_number}"
         )
 
-        while True:
-            response = requests.get(url, headers=headers, params=params)
+        comments = fetch_comments_for_issue(
+            issue_number=issue_number,
+            repo_owner=repo_owner,
+            repo_name=repo_name,
+            headers=headers
+        )
 
-            if response.status_code != 200:
-                logging.error(
-                    "Error when fetching comments for issue"
-                    f" #{issue_number}: {response.status_code}"
-                )
-                break
+        logging.info(
+            f"Saving comments for issue #{issue_number}"
+        )
 
-            data = response.json()
+        save_comments_to_postgres(
+            conn=conn,
+            issue_id=issue_id,
+            comments=comments
+        )
 
-            if not data:
-                break
+        logging.info(
+            f"Finished issue #{issue_number} --- {i + 1}/{len(issues)}"
+        )
 
-            comments.extend(data)
-
-            params["page"] += 1
-
-    logging.info(f"Finished fetching all of the comments.")
-
-    return comments
+    logging.info(f"Finished fetching and saving all of the comments.")
 
 
 def save_comments_to_postgres(conn, issue_id, comments):
@@ -148,8 +175,11 @@ def save_comments_to_postgres(conn, issue_id, comments):
             """
         )
 
-        for comment in comments:
-            print(f"Inserindo comentário {comment['id']}")
+        for i, comment in enumerate(comments):
+            logging.info(
+                f"  Inserting comment {comment['id']}"
+                f" --- {i + 1}/{len(comments)}"
+            )
 
             cursor.execute(
                 """
@@ -168,10 +198,13 @@ def save_comments_to_postgres(conn, issue_id, comments):
             )
 
         conn.commit()
-        print(f"{len(comments)} comentários inseridos para a issue {issue_id}")
+
+        logging.info(
+            f"  {len(comments)} comments inserted for issue {issue_id}"
+        )
 
     except Exception as e:
-        print(f"Erro ao salvar comentários: {e}")
+        logging.error(f"Error when saving the comments: {e}")
 
 
 def save_issues_to_postgres(conn, issues, release_id, repo_owner, repo_name):
@@ -224,11 +257,9 @@ def save_issues_to_postgres(conn, issues, release_id, repo_owner, repo_name):
                 ),
             )
 
-            # Buscar e salvar os comentários da issue
-            # comments = fetch_comments_for_issue(repo_owner, repo_name, issue_number)
-            # save_comments_to_postgres(conn, issue_id, comments)
-
         conn.commit()
+
         logging.info("Issues successfully inserted.")
+        
     except Exception as e:
         logging.error(f"Error when saving the issues: {e}")
